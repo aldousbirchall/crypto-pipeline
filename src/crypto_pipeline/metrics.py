@@ -44,13 +44,13 @@ def compute_volatility(closes: list[float], period: int = 20) -> list[float | No
 
     result: list[float | None] = []
     for i in range(len(closes)):
-        if i < period:
+        if i < period - 1:
             result.append(None)
         else:
             # log_returns indices are offset by 1 from closes
             # For closes[i], the corresponding log return is log_returns[i-1]
-            # We need 'period' log returns ending at index i-1
-            window = log_returns[i - period : i]
+            # We need 'period - 1' log returns ending at index i-1
+            window = log_returns[i - period + 1 : i]
             mean = sum(window) / len(window)
             variance = sum((r - mean) ** 2 for r in window) / len(window)
             result.append(math.sqrt(variance))

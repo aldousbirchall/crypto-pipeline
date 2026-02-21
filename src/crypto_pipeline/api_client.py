@@ -3,6 +3,7 @@ from __future__ import annotations
 """CoinCap API client (REST and WebSocket)."""
 
 import json
+import signal
 import threading
 import time
 from typing import Callable
@@ -125,8 +126,18 @@ class CoinCapClient:
             on_open=_on_open,
         )
 
+        def _sigint_handler(signum, frame):
+            if stop_event is not None:
+                stop_event.set()
+            ws_app.close()
+
+        old_handler = signal.signal(signal.SIGINT, _sigint_handler)
+
         if stop_event is not None:
             stop_thread = threading.Thread(target=_check_stop, daemon=True)
             stop_thread.start()
 
-        ws_app.run_forever()
+        try:
+            ws_app.run_forever(ping_timeout=10)
+        finally:
+            signal.signal(signal.SIGINT, old_handler)

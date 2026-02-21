@@ -131,6 +131,10 @@ def main(argv: list[str] | None = None) -> int:
 
                 elif args.query_command == "history":
                     results = query_history(db, args.assets, args.start, args.end)
+                    # Check if all assets returned empty results
+                    if all(len(rows) == 0 for rows in results.values()):
+                        print("No data found for the requested range.")
+                        return 0
                     # Print header
                     print("ASSET\tPERIOD\tOPEN\tHIGH\tLOW\tCLOSE\tVOLUME\tSMA_20\tSMA_50\tVOLATILITY\tVWAP")
                     for asset_id, rows in results.items():
