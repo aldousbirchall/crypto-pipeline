@@ -1,0 +1,2 @@
+[console_scripts]
+crypto-pipeline = crypto_pipeline.cli:main
