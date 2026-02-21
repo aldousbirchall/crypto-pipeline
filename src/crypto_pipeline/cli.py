@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import sys
 
-from crypto_pipeline.api_client import CoinCapClient
+from crypto_pipeline.api_client import PROVIDERS, DEFAULT_PROVIDER, get_provider
 from crypto_pipeline.pipeline import (
     backfill,
     query_history,
@@ -17,14 +17,7 @@ from crypto_pipeline.storage import Database
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    """Parse CLI arguments. Returns namespace with:
-    - command: str ("backfill" | "stream" | "query" | "refresh")
-    - query_command: str | None ("latest" | "history", only for query)
-    - assets: list[str] (parsed from comma-separated string)
-    - db: str (database file path)
-    - start: str | None (YYYY-MM-DD, query history only)
-    - end: str | None (YYYY-MM-DD, query history only)
-    """
+    """Parse CLI arguments."""
     # Parent parser for shared flags
     parent = argparse.ArgumentParser(add_help=False)
     parent.add_argument(
@@ -38,6 +31,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         type=str,
         default="crypto_pipeline.db",
         help="Path to SQLite database file (default: crypto_pipeline.db)",
+    )
+    parent.add_argument(
+        "--provider",
+        type=str,
+        default=DEFAULT_PROVIDER,
+        choices=sorted(PROVIDERS),
+        help=f"Data provider (default: {DEFAULT_PROVIDER})",
     )
 
     # Main parser
@@ -103,19 +103,19 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command == "backfill":
             with Database(args.db) as db:
-                client = CoinCapClient()
+                client = get_provider(args.provider)
                 backfill(db, client, args.assets)
             return 0
 
         elif args.command == "refresh":
             with Database(args.db) as db:
-                client = CoinCapClient()
+                client = get_provider(args.provider)
                 refresh(db, client, args.assets)
             return 0
 
         elif args.command == "stream":
             with Database(args.db) as db:
-                client = CoinCapClient()
+                client = get_provider(args.provider)
                 stream(db, client, args.assets)
             return 0
 

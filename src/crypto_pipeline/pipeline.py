@@ -6,13 +6,13 @@ import sys
 import time
 from datetime import datetime, timezone
 
-from crypto_pipeline.api_client import CoinCapClient
+from crypto_pipeline.api_client import CryptoProvider
 from crypto_pipeline.metrics import compute_all_metrics
 from crypto_pipeline.storage import Database
 from crypto_pipeline.validation import validate_candle, validate_tick
 
 
-def backfill(db: Database, client: CoinCapClient, assets: list[str], days: int = 30) -> None:
+def backfill(db: Database, client: CryptoProvider, assets: list[str], days: int = 30) -> None:
     """Full backfill: fetch asset metadata, pull candles for last `days` days,
     compute metrics, store all.
 
@@ -63,7 +63,7 @@ def backfill(db: Database, client: CoinCapClient, assets: list[str], days: int =
         print(f"  Computed {len(metrics)} metrics for {asset_id}", file=sys.stderr)
 
 
-def refresh(db: Database, client: CoinCapClient, assets: list[str]) -> None:
+def refresh(db: Database, client: CryptoProvider, assets: list[str]) -> None:
     """Incremental update: fetch candles since last stored period, recompute metrics, store.
 
     Raises SystemExit on API errors.
@@ -123,7 +123,7 @@ def refresh(db: Database, client: CoinCapClient, assets: list[str]) -> None:
             print(f"  Recomputed {len(metrics)} metrics for {asset_id}", file=sys.stderr)
 
 
-def stream(db: Database, client: CoinCapClient, assets: list[str]) -> None:
+def stream(db: Database, client: CryptoProvider, assets: list[str]) -> None:
     """Start WebSocket stream. Reconnects with exponential backoff on disconnect.
 
     Runs until interrupted (SIGINT/Ctrl+C). Exits cleanly with code 0.
